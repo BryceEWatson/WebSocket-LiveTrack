@@ -1,0 +1,31 @@
+{
+
+  "name": "LiveTrack-Server",
+
+  "preferGlobal": true,
+
+  "version": "0.1.1",
+
+  "author": "Bryce Watson <BryceEWatson@gmail.com>",
+
+  "description": "A live server for tracking user activies from LiveTrack clients.`",
+
+  "contributors": [ 
+
+    {
+
+      "name": "Bryce Watson",
+
+      "email": "BryceEWatson@gmail.com"
+
+    } 
+
+  ],
+
+  "dependencies" : {
+
+    "ws" : "0.4.x"
+
+  }
+  
+}
