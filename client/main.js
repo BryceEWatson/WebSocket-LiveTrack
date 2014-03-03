@@ -32,11 +32,10 @@
     websocketOpen : function(context, event){
       var co = context;
       co.getSessionId(co);
-      co.payLoad = "type:"+co.PAYLOAD_TYPE_FIRSTLOAD+",uniqueId:"+co.uniqueId;
-      //co.payload = {
-        //type : co.PAYLOAD_TYPE_FIRSTLOAD,
-        //uniqueId : co.uniqueId
-      //}
+      co.payload = {
+        type : co.PAYLOAD_TYPE_FIRSTLOAD,
+        uniqueId : co.uniqueId
+      }
       co.waitForSocketConnection(co, co.sendData);
     },
     waitForSocketConnection : function(context, callback){
@@ -59,7 +58,7 @@
     },
     sendData : function(context) {
       var co = context;
-      co.webSocket.send(co.payLoad);
+      co.webSocket.send(JSON.stringify(co.payload));
     }
   }
 }());
