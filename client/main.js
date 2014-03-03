@@ -1,13 +1,18 @@
  var trackMain = (function(){
   return {
-    init : function(serverUrl, trackingUtils) {
+    init : function(serverUrl, trackingUtils, enableGeo) {
       var co = this;
-      co.PAYLOAD_TYPE_FIRSTLOAD = "firstLoad";
-      co.UID_KEY                = "uniqueId";
+      co.PAYLOAD_TYPE_FIRSTLOAD    = "firstLoad";
+      co.PAYLOAD_TYPE_SUPPLEMENTAL = "supplementalLoad";
+      co.UID_KEY                   = "uniqueId";
       
       co.serverUrl = serverUrl;
       co.trackingUtils = trackingUtils;
       
+      co.getSessionId(co);
+      if(enableGeo){
+        co.getGeolocation(co);
+      }
       co.establishConnection(co);
       co.bindListeners(co);
     },
@@ -16,6 +21,23 @@
       if(co.webSocket) {
         co.webSocket.onopen = co.websocketOpen(context,event); 
       }
+    },
+    getGeolocation : function(context) {
+      var co = context;
+      $.get("http://ipinfo.io", function(response) {
+        co.geoLocation = new Object();
+        co.geoLocation.city = response.city;
+        co.geoLocation.region = response.region;
+        co.geoLocation.country = response.country;
+        co.sendData(co, co.PAYLOAD_TYPE_SUPPLEMENTAL);
+	  }, "jsonp");
+      //if ("geolocation" in navigator) {
+      //   navigator.geolocation.getCurrentPosition(function(position) {
+      //       co.latitude = position.coords.latitude;
+    	//	 co.longitude = position.coords.longitude;
+          //   co.sendData(co, co.PAYLOAD_TYPE_SUPPLEMENTAL);
+		 //});
+      //}
     },
     getSessionId : function(context) {
       var co = context;
@@ -31,11 +53,7 @@
     },
     websocketOpen : function(context, event){
       var co = context;
-      co.getSessionId(co);
-      co.payload = {
-        type : co.PAYLOAD_TYPE_FIRSTLOAD,
-        uniqueId : co.uniqueId
-      }
+      
       co.waitForSocketConnection(co, co.sendData);
     },
     waitForSocketConnection : function(context, callback){
@@ -45,7 +63,7 @@
               if (co.webSocket.readyState === 1) {
                   console.log("Connection is ready")
                   if(callback != null){
-                      callback(co);
+                      callback(co, co.PAYLOAD_TYPE_FIRSTLOAD);
                   }
                   return;
   
@@ -56,10 +74,16 @@
   
       }, 5); // wait 5 milisecond for the connection...
     },
-    sendData : function(context) {
+    sendData : function(context, type) {
       var co = context;
+      co.payload = new Object();
+      co.payload.type = type;
+      co.payload.uniqueId = co.uniqueId;
+      co.payload.geoLocation = co.geoLocation;
+      // **We can't get these without user request** co.payload.latitude = co.latitude;
+      //co.payload.longitude = co.longitude;
       co.webSocket.send(JSON.stringify(co.payload));
-    }
+    },
   }
 }());
 
@@ -106,4 +130,4 @@ var trackingUtils = (function(){
 // Untility Module End
 
 //Start
-trackMain.init("ws://brycew.kd.io:8080/", trackingUtils);
+trackMain.init("ws://brycew.kd.io:8080/", trackingUtils, true);
